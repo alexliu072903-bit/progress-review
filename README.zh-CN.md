@@ -2,13 +2,13 @@
 
 **[English](README.md) | 中文**
 
-一个给 AI coding Agent（AirJelly、Claude Code、Codex 等）用的 skill：把一个人真实做过的事，整理成两份对照视图——一条时间线、一条项目线，每条都标上「负责等级」与「结果状态」。
+一个仅在 AirJelly 内运行的 skill：只使用当前用户的 AirJelly profile、memory 与已记录事件，把一段时间内可被 Context 支持的工作整理成两份对照视图——一条时间线、一条项目线，每条都标上「负责等级」与「结果状态」。
 
-它只有一个硬要求：**产出是确定的**——把这个 skill 发给任何同事，用任何 Agent 跑同一个人，结果都一样。
+它只有一个硬要求：**数据源是封闭的**——不得用 workspace、Git、网页、外部文档、其他 MCP 或当前对话补证。同一份 AirJelly Context snapshot、同一评测对象与同一时间窗口，应得到相同的分类与输出结构。
 
 ## 它做什么
 
-给定一个人的 memory 或 context，产出两份对照视图（自包含 HTML）：
+给定一个人的 AirJelly Context，产出两份对照视图（自包含 HTML）：
 
 - **时间线**——按时间排序，看轨迹。
 - **项目线**——按主题聚类，看权重。
@@ -40,13 +40,17 @@ assets/team-progress-review.template.html    固定输出模板
 5. **固定模板**——Section、类名、图例一致。
 6. **出厂 QA**——含跨次运行的一致性检查。
 
+## 数据来源
+
+唯一允许的数据来源是 AirJelly 已保存的 profile、memory、event，以及当前 session 注入的 `airjelly_context`。
+
+事件可以来自飞书、ChatGPT、Claude、Chrome 等原始应用，但必须已经进入 AirJelly memory；Skill 不会重新访问这些应用补证。AirJelly Context 不足时只标记缺口，不读取本地仓库、GitHub、网页或用户临时提供的材料。当前环境无法访问 AirJelly Context 时，Skill 不生成评测。
+
 ## 安装
 
-把 `progress-review/` 文件夹放进你 Agent 的 skills 目录：
+把 `progress-review/` 文件夹放进 AirJelly 的 skills 目录：
 
 - AirJelly：`~/Library/Application Support/AirJelly/skills/progress-review/`
-- Claude Code：`~/.claude/skills/progress-review/`
-- Codex：`~/.codex/skills/progress-review/`
 
 ## 使用
 
@@ -56,7 +60,7 @@ assets/team-progress-review.template.html    固定输出模板
 
 ## 最小输入
 
-一个人的 memory 或 context。缺失时，skill 会索取最小材料：一句事实简介、≥2 个产出、每个产出 1 个可核验链接；对外版本再加联系方式。
+评测对象、时间窗口、输出用途和公开边界。成果事实全部从 AirJelly Context 读取；缺失时标记证据缺口，不要求用户补材料，也不回退到其他来源。
 
 ## 边界
 
@@ -73,4 +77,5 @@ MIT
 
 | 版本 | 日期 | 变更 |
 | --- | --- | --- |
+| 1.1.0 | 2026-10-04 | 改为 AirJelly-only：封闭数据源、禁止外部补证、Context 不可用时 fail closed。 |
 | 1.0.0 | 2026-10-04 | 首个版本：封闭双轴词表、两条线输出、固定模板、QA。 |

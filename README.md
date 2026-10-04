@@ -2,13 +2,13 @@
 
 **English | [中文](README.zh-CN.md)**
 
-A skill for AI coding agents (AirJelly, Claude Code, Codex, and others) that turns a person's real work into two matching views — a timeline and a project line — with every item labelled by ownership and result state.
+An AirJelly-only skill that uses the current user's AirJelly profile, memory, and recorded events to turn context-supported work into two matching views — a timeline and a project line — with every item labelled by ownership and result state.
 
-Its one hard requirement is that the output is deterministic: send this skill to any colleague, run it with any agent, and the same person produces the same result.
+Its hard requirement is a closed evidence boundary: it must not use the workspace, Git, the web, external documents, other MCP sources, or the current conversation to supplement evidence. The same AirJelly Context snapshot, subject, and time window should produce the same classifications and output structure.
 
 ## What it does
 
-Given a person's memory or context, it produces a self-contained HTML with:
+Given a person's AirJelly Context, it produces a self-contained HTML with:
 
 - **A timeline** — items in chronological order, to show trajectory.
 - **A project line** — items grouped by theme, to show where the weight sits.
@@ -40,13 +40,17 @@ assets/team-progress-review.template.html    the fixed output template
 5. **Fixed template** — same sections, classes, and legend.
 6. **QA** — including a cross-run consistency check.
 
+## Data source
+
+The only allowed sources are profile facts, memory, and events already stored in AirJelly, plus `airjelly_context` injected into the current session.
+
+An event may identify Feishu, ChatGPT, Claude, Chrome, or another app as its original `source_app`, but it is usable only after AirJelly has recorded it. The skill never revisits those applications to supplement evidence. Missing AirJelly evidence remains a gap; the skill does not read local repositories, GitHub, web pages, or temporary user-supplied materials. If AirJelly Context is unavailable, no review is generated.
+
 ## Install
 
-Put the `progress-review/` folder into your agent's skills directory:
+Put the `progress-review/` folder into AirJelly's skills directory:
 
 - AirJelly: `~/Library/Application Support/AirJelly/skills/progress-review/`
-- Claude Code: `~/.claude/skills/progress-review/`
-- Codex: `~/.codex/skills/progress-review/`
 
 ## Use
 
@@ -56,7 +60,7 @@ Give me a progress review for the past three months.
 
 ## Minimum input
 
-A person's memory or context. If it is missing, the skill asks for the minimum: a factual bio, at least two outputs, one verifiable link per output, and a contact route for a public version.
+The review subject, time window, intended use, and publication boundary. All work claims come from AirJelly Context. Missing evidence remains an explicit gap; the skill does not request supplementary work materials or fall back to another source.
 
 ## Boundary
 
@@ -73,4 +77,5 @@ MIT
 
 | Version | Date | Change |
 | --- | --- | --- |
+| 1.1.0 | 2026-10-04 | Made the skill AirJelly-only with a closed evidence boundary and fail-closed behavior when Context is unavailable. |
 | 1.0.0 | 2026-10-04 | First release: closed dual-axis taxonomy, two-line output, fixed template, QA. |

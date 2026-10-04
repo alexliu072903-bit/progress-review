@@ -1,6 +1,6 @@
 ---
 name: progress-review
-description: 把一个人在一段时间内做过的事，按「有效性叙事」整理成两份对照视图——一条时间线、一条项目线。对每个条目标注负责等级（主导/负责/推动/影响/参与）与结果状态（已交付/已产生影响/在研发/待验证/未闭环/已停止-归档），并如实标出「做了/没做、有影响/无影响、闭环/未闭环」。适用于个人进展盘点、团队内部评测、转正或复盘材料；对外不得称为「绩效评估」或「技术评估」。当用户说「帮我梳理我做过的事 / 我的进展」「做一份团队内部评测」「按时间线和项目线整理我的工作」时使用。
+description: 仅在 AirJelly 内运行的个人进展评测 Skill。唯一事实来源是当前用户的 AirJelly profile、memory 与已记录事件；不得读取 workspace、Git、网页、外部文档、其他 MCP 或当前对话来补充成果证据。把一段时间内可由 AirJelly Context 支持的工作整理成时间线与项目线，并标注负责等级和结果状态。适用于个人进展盘点、团队内部评测、转正或复盘材料；对外不得称为「绩效评估」或「技术评估」。AirJelly Context 不可用时不得生成评测。
 ---
 
 # Progress Review — 进展评测（有效性叙事）
@@ -25,7 +25,7 @@ description: 把一个人在一段时间内做过的事，按「有效性叙事�
 
 ## 确定性（最高优先级）
 
-硬要求：**任何人用任何 AJ 跑同一个人，产出必须一致。** 为达到这一点，遵守下列约束，任一都不允许即兴发挥：
+硬要求：**同一份 AirJelly Context snapshot、同一评测对象与同一时间窗口，必须得到相同的分类、排序和模板结构。** 为达到这一点，遵守下列约束，任一都不允许即兴发挥：
 
 1. **标签集封闭**：负责等级、结果状态只能取 `references/taxonomy.md` 定义的值，不得自创、不得改动措辞。
 2. **每条规则可判定**：每个标签有明确定义与 tie-breaker（冲突时如何裁）。
@@ -34,11 +34,56 @@ description: 把一个人在一段时间内做过的事，按「有效性叙事�
 5. **模板固定**：用 `assets/team-progress-review.template.html`，不另起结构。
 6. **出厂 QA**：发布前跑 `references/qa.md` 的一致性检查。
 
-## 输入
+## Runtime 与数据源边界（最高优先级）
 
-1. 优先：该人的 **AirJelly memory / context**（profile + 事件）。
-2. 不足时索取**最小材料**：一句事实简介、≥2 个产出、每个产出至少 1 个可核验链接；对外发送时再加联系方式。
-3. 缺什么就标 `缺口`——**不编造**数据、日期、头衔、加成结果。
+本 Skill **只能在 AirJelly 内运行**，并采用 fail-closed 规则。
+
+### 唯一允许的数据源
+
+- AirJelly `get_user_profile` 返回的 profile facts；
+- AirJelly `recall_memory` / `browse_memory` 返回的 memory 与 event；
+- 当前 AirJelly session 注入的 `airjelly_context`；
+- 上述记录自带的时间、来源应用、任务关系与 provenance。
+
+AirJelly 事件的 `source_app` 可以是飞书、ChatGPT、Claude、Chrome 等。只有该内容已经作为记录进入 AirJelly memory 时才能使用；不得重新访问原始应用补证。
+
+### 禁止的数据源
+
+不得主动读取、搜索或引用以下内容补充成果证据：
+
+- 当前 workspace、本地文件或 Obsidian；
+- Git repository、commit、branch、PR 或 GitHub；
+- 网页、搜索引擎或外部文档；
+- 飞书、Google Drive 或其他 MCP；
+- 当前对话中的临时陈述；
+- 用户另行提供的项目链接、简历或成果材料。
+
+用户输入只允许确定**评测对象、时间窗口、输出用途和公开边界**，用户输入本身不得作为成果证据。
+
+### Fail-closed
+
+如果当前环境不能读取 AirJelly profile、memory 或 event：
+
+1. 不回退到其他 Context；
+2. 不要求用户补充成果材料；
+3. 不生成推测性或空壳评测；
+4. 只返回：`当前环境无法访问 AirJelly Context，因此未生成进展评测。`
+
+## Context 获取流程
+
+1. 读取评测对象的 AirJelly profile。
+2. 按指定时间窗口读取 AirJelly event / activity；没有窗口时使用过去 3 个月。
+3. 读取与候选项目、交付、影响、停止和未闭环事项直接相关的 memory。
+4. 合并重复事件，保留最早发生时间与最新状态证据；新状态与旧 Task 叙述冲突时，以较新的直接事件为准。
+5. 每个候选条目必须保留 AirJelly provenance：memory / event 标识、日期或 `occurred_at`、`source_app`，可用时保留 `task_id`。
+6. 缺少 AirJelly 标识或日期的陈述不得进入评测正文，只能进入「证据缺口」。
+
+## 输入与缺口
+
+1. 输入参数只有：评测对象、时间窗口、输出用途和公开边界。
+2. AirJelly Context 不足时，不补读其他来源、不要求补材料，缺什么就标 `缺口`。
+3. 兴趣、浏览、讨论或发出请求本身不算成果；没有交付或结果证据时不得升级状态。
+4. 不编造数据、日期、头衔或结果；无法判定的条目宁可省略。
 
 ## 判定规则
 
@@ -69,7 +114,7 @@ description: 把一个人在一段时间内做过的事，按「有效性叙事�
 
 ## Definition of Done
 
-见 `references/qa.md`。至少：标签全部合法、每条带来源与日期、两条线排序正确、模板一致、未核验项如实标注、无编造、页眉无「绩效」字样。
+见 `references/qa.md`。至少：所有事实都来自 AirJelly Context、每条可追溯至 AirJelly provenance、标签全部合法、两条线排序正确、模板一致、未核验项如实标注、无编造、页眉无「绩效」字样。
 
 ## 边界
 
@@ -77,3 +122,4 @@ description: 把一个人在一段时间内做过的事，按「有效性叙事�
 - 不编造数据、日期、头衔、结果。
 - 「合并不等于发布，有数据不等于已验证」。
 - 涉及他人隐私或公司内部数据时，**不发布**，只做私人盘点。
+- AirJelly Context 之外即使存在更强证据，也不在本 Skill 中补读；只记录为证据缺口。
