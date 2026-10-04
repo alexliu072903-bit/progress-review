@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>{{NAME}} · 进展评测</title>
+<style>
+  :root{
+    --paper:#f6f3ec; --ink:#1e1c18; --ink2:#3c3730; --mut:#8b8272; --line:#ddd6c8;
+    --acc:#2f615c; --acc-s:#e4eae4; --warm:#a9752f; --warm-s:#f3e6d2;
+    --green:#3b6d11; --green-s:#eaf3de; --red:#a32d2d; --red-s:#fcebeb;
+    --purple:#534ab7; --purple-s:#eeedfe;
+    --font:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace; --maxw:1060px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:28px 22px 80px}
+  a{color:var(--acc);text-decoration:none} a:hover{text-decoration:underline;text-underline-offset:3px}
+  h1{font-size:30px;font-weight:640;letter-spacing:-.02em;margin:0 0 6px}
+  .sub{color:var(--ink2);font-size:15px;max-width:70ch}
+  .meta{display:flex;gap:18px;flex-wrap:wrap;margin:16px 0 8px;font-family:var(--mono);font-size:12px;letter-spacing:.04em;color:var(--mut)}
+  .meta b{color:var(--ink);font-weight:600}
+  .preamble{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:18px 0 22px}
+  .preamble p{margin:0 0 8px;color:var(--ink2)} .preamble p:last-child{margin:0}
+  .preamble .tag{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--acc);border:1px solid var(--line);border-radius:999px;padding:3px 10px;margin-bottom:8px}
+  .tabs{display:flex;gap:8px;margin:8px 0 24px;flex-wrap:wrap}
+  .tabs button{font-family:var(--font);font-size:14px;font-weight:600;padding:10px 18px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--ink2);cursor:pointer}
+  .tabs button.active{background:var(--acc);color:#fff;border-color:var(--acc)}
+  .legend{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 22px}
+  .lg{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink2);background:#fff;border:1px solid var(--line);border-radius:999px;padding:5px 12px}
+  .lg .dot{width:9px;height:9px;border-radius:50%;background:#999}
+  .l-lead .dot{background:var(--acc)} .l-own .dot{background:#5bb0a5} .l-drive .dot{background:var(--warm)}
+  .l-influence .dot{background:var(--purple)} .l-support .dot{background:#9aa}
+  .r-ship .dot{background:var(--green)} .r-impact .dot{background:var(--green)} .r-flight .dot{background:var(--warm)}
+  .r-wait .dot{background:#9aa} .r-open .dot{background:var(--red)} .r-stop .dot{background:#5f5e5a}
+  .b{display:inline-block;font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;border-radius:999px;padding:2px 9px;white-space:nowrap;margin:0 2px 2px 0}
+  .b.lead{background:var(--acc);color:#fff} .b.own{background:#e4f0ee;color:var(--acc)}
+  .b.drive{background:var(--warm-s);color:var(--warm)} .b.influence{background:var(--purple-s);color:var(--purple)}
+  .b.support{background:#eef0ec;color:#5f5e5a}
+  .b.ship{background:var(--green-s);color:var(--green)} .b.impact{background:var(--green-s);color:var(--green)}
+  .b.flight{background:var(--warm-s);color:var(--warm)} .b.wait{background:#eef0ec;color:#5f5e5a}
+  .b.open{background:var(--red-s);color:var(--red)} .b.stop{background:#eef0ec;color:#5f5e5a}
+  .four{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 20px;margin:0 0 22px}
+  .four h3{margin:0 0 10px;font-size:14px}
+  .four .row{display:grid;grid-template-columns:118px 1fr;gap:6px 14px;padding:7px 0;border-bottom:1px dashed var(--line);font-size:13px}
+  .four .row:last-child{border-bottom:none}
+  .four .k{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--acc)}
+  .four .v{color:var(--ink2)}
+  .tl{position:relative;padding-left:26px}
+  .tl::before{content:"";position:absolute;left:7px;top:8px;bottom:8px;width:2px;background:var(--line)}
+  .tm{position:relative;margin:0 0 26px}
+  .tm::before{content:"";position:absolute;left:-24px;top:7px;width:12px;height:12px;border-radius:50%;background:var(--acc);border:3px solid #fff;box-shadow:0 0 0 1px var(--line)}
+  .tm h3{font-size:19px;font-weight:640;margin:0 0 2px}
+  .tm .th{font-size:13px;color:var(--mut);font-family:var(--mono);letter-spacing:.04em}
+  .tm .focus{font-size:13.5px;color:var(--ink2);margin:8px 0 10px;font-weight:600}
+  .tm ul{margin:0;padding:0;list-style:none}
+  .tm li{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:8px 0}
+  .tm li .what{font-weight:600;color:var(--ink);font-size:14.5px}
+  .tm li .more{color:var(--ink2);font-size:13.5px;margin-top:5px}
+  .tm li .badges{margin-top:7px}
+  .grp{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px 22px;margin:0 0 20px}
+  .grp .ghead{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:12px}
+  .grp h2{font-size:18px;font-weight:640;margin:0}
+  .grp .gbadges{display:flex;gap:6px;flex-wrap:wrap}
+  .grp .gs{font-size:13.5px;color:var(--ink2);margin:0 0 4px}
+  .grp .evi{font-size:12.5px;color:var(--mut)}
+  .it{padding:11px 0;border-bottom:1px dashed var(--line)}
+  .it:last-child{border-bottom:none}
+  .it .t{font-weight:600;color:var(--ink);font-size:14.5px}
+  .it .x{color:var(--ink2);font-size:13.5px;margin-top:3px}
+  .it .badges{display:flex;flex-wrap:wrap;margin-top:6px;gap:2px}
+  .gaps{background:var(--warm-s);border:1px solid var(--warm);border-radius:14px;padding:16px 20px;margin:22px 0}
+  .gaps h3{margin:0 0 8px;font-size:15px;color:var(--warm)}
+  .gaps ul{margin:0;padding-left:20px;color:var(--ink2);font-size:13.5px}
+  .foot{margin-top:34px;padding-top:18px;border-top:1px solid var(--line);color:var(--mut);font-size:12.5px;font-family:var(--mono)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>进展评测</h1>
+  <p class="sub">{{NAME}} · {{ROLE}} · {{ORG}} · 归档 {{GENERATED_AT}}</p>
+  <div class="meta"><span>窗口 <b>{{WINDOW}}</b></span><span>评估对象 <b>{{SCOPE}}</b></span><span>数据来源 <b>{{SOURCE}}</b></span></div>
+
+  <div class="preamble">
+    <span class="tag">评估视角 · 有效性叙事</span>
+    <p>每条内容标出 <b>负责等级</b>（主导 / 负责 / 推动 / 影响 / 参与）与 <b>结果状态</b>（已交付 / 已产生影响 / 在研发 / 待验证 / 未闭环 / 已停止-归档），并按两条线组织——纯时间线、纯项目线。</p>
+    <p>每条带来源与日期；「合并不等于发布，有数据不等于已验证」；未核验项如实标注，不圆成已完成。</p>
+  </div>
+
+  <div class="tabs">
+    <button id="bt-tl" class="active" onclick="show('tl')">① 时间线</button>
+    <button id="bt-pl" onclick="show('pl')">② 项目线</button>
+  </div>
+
+  <div class="legend">
+    <span class="lg l-lead"><span class="dot"></span>主导</span>
+    <span class="lg l-own"><span class="dot"></span>负责</span>
+    <span class="lg l-drive"><span class="dot"></span>推动</span>
+    <span class="lg l-influence"><span class="dot"></span>影响</span>
+    <span class="lg l-support"><span class="dot"></span>参与</span>
+    <span class="lg r-ship"><span class="dot"></span>已交付</span>
+    <span class="lg r-impact"><span class="dot"></span>已产生影响</span>
+    <span class="lg r-flight"><span class="dot"></span>在研发</span>
+    <span class="lg r-wait"><span class="dot"></span>待验证</span>
+    <span class="lg r-open"><span class="dot"></span>未闭环</span>
+    <span class="lg r-stop"><span class="dot"></span>已停止-归档</span>
+  </div>
+
+  <div class="four">
+    <h3>一览：做了 / 没做 · 有影响 / 无影响 · 闭环 / 未闭环</h3>
+    <div class="row"><span class="k">做了</span><span class="v">{{DONE}}</span></div>
+    <div class="row"><span class="k">没做 / 已停</span><span class="v">{{NOT_DONE}}</span></div>
+    <div class="row"><span class="k">有影响</span><span class="v">{{IMPACT}}</span></div>
+    <div class="row"><span class="k">无影响 / 未验证</span><span class="v">{{NO_IMPACT}}</span></div>
+    <div class="row"><span class="k">闭环</span><span class="v">{{CLOSED}}</span></div>
+    <div class="row"><span class="k">未闭环</span><span class="v">{{OPEN}}</span></div>
+  </div>
+
+  <section id="tl">
+    <div class="tl">
+      <!-- REPEAT: 每个时间段一个 .tm（按时间升序） -->
+      <div class="tm">
+        <h3>{{PERIOD}}</h3>
+        <div class="th">{{PERIOD_THEME}}</div>
+        <div class="focus">{{PERIOD_FOCUS}}</div>
+        <ul>
+          <!-- REPEAT: 每条 -->
+          <li><div class="what"><span class="b {{OWN_CLASS}}">{{OWN}}</span> <span class="b {{STATE_CLASS}}">{{STATE}}</span> {{ITEM_TITLE}}</div><div class="more">{{ITEM_DETAIL}}（来源：{{SOURCE}}，{{DATE}}）</div></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="pl" style="display:none">
+    <!-- REPEAT: 每个主题一个 .grp（按主责等级 + 结果状态排序） -->
+    <div class="grp">
+      <div class="ghead"><h2>{{GROUP_TITLE}}</h2><div class="gbadges"><span class="b {{OWN_CLASS}}">{{GROUP_MAIN_OWN}}</span><span class="b {{STATE_CLASS}}">{{GROUP_STATE}}</span></div></div>
+      <p class="gs">{{GROUP_SUMMARY}}</p>
+      <div class="items">
+        <!-- REPEAT: 每条 -->
+        <div class="it"><div class="t">{{ITEM_TITLE}}</div><div class="x">{{ITEM_DETAIL}} <span class="b {{STATE_CLASS}}">{{STATE}}</span></div></div>
+      </div>
+      <div class="evi">来源：{{GROUP_SOURCES}}</div>
+    </div>
+  </section>
+
+  <div class="gaps">
+    <h3>需要补齐的证据缺口（诚实项）</h3>
+    <ul><!-- REPEAT --><li>{{GAP}}</li></ul>
+  </div>
+
+  <div class="foot">{{NAME}} · 进展评测 · 由 {{TOOL}} 整理 · {{GENERATED_AT}}</div>
+</div>
+
+<script>
+function show(w){
+  document.getElementById('tl').style.display = w==='tl' ? 'block' : 'none';
+  document.getElementById('pl').style.display = w==='pl' ? 'block' : 'none';
+  document.getElementById('bt-tl').classList.toggle('active', w==='tl');
+  document.getElementById('bt-pl').classList.toggle('active', w==='pl');
+}
+</script>
+</body>
+</html>
